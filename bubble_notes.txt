@@ -1,0 +1,7 @@
+Project Structure
+---------------
+1. Main Class
+2. MainMenu Class - GUI elements (Start, Restart, JSlider)
+3. GameWindow - game panel interface
+4. GamePanel - field handler (playing field, game logic, view render)
+5. Bubble - bubble position and behaviour
