@@ -21,7 +21,7 @@ public class MainMenu extends JFrame{
         setLayout(new GridLayout(3,1)); // set the layout manager
 
         // create a new game window instance
-        gameWindow = new GameWindow();
+        // gameWindow = new GameWindow();
 
         // create and add components to the main menu
         dJSlider = new JSlider();
@@ -29,9 +29,9 @@ public class MainMenu extends JFrame{
         restartButton = new JButton("Restart");
 
         // add components to the frame
-        add(dJSlider);
-        add(startButton);
-        add(restartButton);
+        // add(dJSlider);
+        // add(startButton);
+        // add(restartButton);
 
         // set the visibility of the window
         setVisible(true);
@@ -51,7 +51,7 @@ public class MainMenu extends JFrame{
            int numMoves = dJSlider.getValue(); // get the value from the slider
            if(gameWindow == null || !gameWindow.isVisible()) {
                gameWindow = new GameWindow(numMoves, this); // create a new game window instance
-               gameWindow.setVisible
+               gameWindow.setVisible(true);
            }
 
         });

@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Timer;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -35,7 +35,7 @@ public class GamePanel extends JPanel {
         this.round = 1;
         this.score = 0;
         this.timeLeft = 15; // set the initial time left to 60 seconds
-        this.timer = new Timer();
+        // this.timer = new Timer();
         this.settingOriginds = true; // flag to indicate if the origins are being set
         this.clicksMade = 0;
 
@@ -59,26 +59,25 @@ public class GamePanel extends JPanel {
     //set the timer
     private void startTimer() {
         if(timer != null) {
-            timer.cancel(); // cancel any existing timer
+            timer.stop();; // cancel any existing timer
            // timer.purge()
         }
         timeLeft = 15 - (round - 1); // set the time left based on the round
-        timer = new Timer(1000, e -> {
-            timeLeft--;
-            if(timeLeft <= 0) {
-                gameOver("Time's up!"); // show game over message
-            }
-            repaint(); // repaint the panel to update the timer
+        timer = new Timer(1000, e-> {
+           timeLeft--; // decrement the time left
+           if(timeLeft<= 0){
+            gameOver("Time is up!"); // show game over message
+           }
+           repaint();
         });
         timer.start(); // start the timer
 
-        // move bubbles periodically
-        new Timer(500, e->{
+        new Timer(500, e-> {
             if(!settingOriginds) {
-                repositionLocal();
-                repaint(); // repaint the panel to update the bubbles
+                repositionLocal(); // reposition the bubbles
+                repaint();
             }
-        }).start();
+        }).start(); // start the timer for repositioning
     }
 
     //start the round
@@ -127,9 +126,9 @@ public class GamePanel extends JPanel {
     private void repositionLocal(){
         int neighborhoodRadius = INITIAL_NEIGHBOR + (round - 1) * NEIGHBOR_INCREMENT;
         for(Bubble bubble : bubbles) {
-            int minX = Math.max(BUBBLE_RADIUS, bubble.x() - neighborhoodRadius/2);
-            int maxX = Math.min(getWidth() - BUBBLE_RADIUS, bubble.x() + neighborhoodRadius/2);
-            int minY = Math.max(BUBBLE_RADIUS, bubble.y() - neighborhoodRadius/2);
+            int minX = Math.max(BUBBLE_RADIUS, bubble.getX() - neighborhoodRadius/2);
+            int maxX = Math.min(getWidth() - BUBBLE_RADIUS, bubble.getX() + neighborhoodRadius/2);
+            int minY = Math.max(BUBBLE_RADIUS, bubble.getY() - neighborhoodRadius/2);
 
             int newX, newY;
             boolean validPosition;
@@ -143,5 +142,77 @@ public class GamePanel extends JPanel {
         }
     }
 
-    // handle mouse click
+    // handle mouse click6
+    private void handleMouseClick(int x, int y) {
+        if(settingOriginds) {
+            if(isValidPosition(x, y)) {
+                bubbles.add(new Bubble(x, y)); // add the bubble to the list
+                clicksMade++; // increment the clicks made
+                repaint();
+                if(clicksMade == numMoves) {
+                    settingOriginds = false; // set the flag to indicate that origins are not being set
+                    JOptionPane.showMessageDialog(this, "Click to burst the bubbles!"); // show message
+                    startTimer(); // start the timer
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid position!"); // show error message
+            }
+        } else {
+            boolean hit = false;
+            for(int i = bubbles.size()-1; i >= 0; i--) {
+                Bubble bubble = bubbles.get(i);
+                double distance = Math.hypot(x-bubble.x, y-bubble.y);
+                if(distance < BUBBLE_RADIUS) {
+                    bubbles.remove(i); // remove the bubble from the list
+                    hit = true;
+                    repaint(); // repaint the panel to update the bubbles
+                    break;
+                }
+            }
+            if(!hit && !bubbles.isEmpty()){
+                gameOver("You clicked outide the box!");
+            }else{
+                startRound(); // start a new round
+            }
+        }
+        repaint(); // repaint the panel to update the score and bubbles
+    }
+
+    private void gameOver(String message) {
+        if(timer != null) {
+            timer.stop(); // stop the timer
+        }
+        JOptionPane.showMessageDialog(this, "Game over" + message); // show game over message
+        gameWindow.dispose();
+        mainMenu.enableRestart(); // enable the restart button in the main menu
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+
+        for(Bubble bubble : bubbles) {
+            g2d.setColor(Color.BLUE);
+            g2d.fillOval(bubble.x - BUBBLE_RADIUS, bubble.y - BUBBLE_RADIUS, BUBBLE_RADIUS * 2, BUBBLE_RADIUS * 2);
+
+            // draw the bubble outline
+            int neighborhoodRadius = INITIAL_NEIGHBOR + (round - 1) * NEIGHBOR_INCREMENT;
+            g2d.setColor(Color.RED);
+            g2d.drawRect(
+                bubble.x - neighborhoodRadius / 2,
+                bubble.y - neighborhoodRadius / 2,
+                neighborhoodRadius,
+                neighborhoodRadius
+            );
+        }
+
+        //display round
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("Round: " + round, 10, 20); // display the round number
+        g2d.drawString("Score: " + score, 10, 40); // display the score
+        g2d.drawString("Time left: " + timeLeft, 10, 60); // display the time left
+
+}
 }
